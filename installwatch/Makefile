@@ -11,7 +11,7 @@ PREFIX=/usr/local
 VERSION=0.7.0beta7
 
 BINDIR=$(PREFIX)/bin
-LIBDIR=$(PREFIX)/lib
+LIBDIR=$(PREFIX)/lib64
 
 all: installwatch.so
 
@@ -31,14 +31,14 @@ install: all
 		rm -f  $(LIBDIR)/installwatch.so; \
 	fi
 	install installwatch.so $(LIBDIR)
-	
+
 	sed -e "s|#PREFIX#|$(PREFIX)|" < installwatch > $(BINDIR)/installwatch
 	chmod 755 $(BINDIR)/installwatch
 
 uninstall:
 	rm -f $(LIBDIR)/installwatch.so
 	rm -f $(BINDIR)/installwatch
-	
+
 clean:
 	rm -f *~ *.bak *.o installwatch.so core localdecls.h libctest test-installwatch
 
