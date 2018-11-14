@@ -5,7 +5,7 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version
  * 2 of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Id: installwatch.c,v 0.7.0.11 2008/11/09 07:47:00 izto Exp $
- * 
+ *
  * april-15-2001 - Modifications by Felipe Eduardo Sanchez Diaz Duran
  *                                  <izto@asic-linux.com.mx>
  * Added backup() and make_path() functions.
@@ -54,10 +54,10 @@
 #else
 #define D_OFF(X) (X)
 #endif
-	
+
 #include "localdecls.h"
 
-#define DEBUG 1  
+#define DEBUG 1
 
 #define LOGLEVEL (LOG_USER | LOG_INFO | LOG_PID)
 #define BUFSIZE 1024
@@ -146,7 +146,7 @@ static int (*true_unlinkat)(int, const char *, int);
 	#define inline inline
 #else
 	#define inline
-#endif	
+#endif
 
 static inline int true_stat(const char *pathname,struct stat *info) {
 	return true_xstat(_STAT_VER,pathname,info);
@@ -176,7 +176,7 @@ static inline int true_mknodat(int dirfd, const char *pathname,mode_t mode,dev_t
 #endif
 
   /* A few defines to fix things a little */
-#define INSTW_OK 0 
+#define INSTW_OK 0
   /* If not set, no work with translation is allowed */
 #define INSTW_INITIALIZED	(1<<0)
   /* If not set, a wrapped function only do its "real" job */
@@ -201,19 +201,19 @@ static inline int true_mknodat(int dirfd, const char *pathname,mode_t mode,dev_t
   /* We store under this subtree the translated status */
 #define _MTRANSL _TRANSL
   /* We construct under this subtree fake directory listings */
-#define _MDIRLS  "/DIRLS"  
+#define _MDIRLS  "/DIRLS"
 
   /* String cell used to chain excluded paths */
 typedef struct string_t string_t;
 struct string_t {
 	char *string;
 	string_t *next;
-};	
+};
 
   /* Used to keep all infos needed to cope with backup, translated fs... */
 typedef struct instw_t {
 	  /*
-	   * global fields 
+	   * global fields
 	   */
 	int gstatus;
 	int dbglvl;
@@ -226,7 +226,7 @@ typedef struct instw_t {
 	char *mdirls;
 	  /* the list of all the paths excluded from translation */
 	string_t *exclude;
-	
+
 	  /*
 	   * per instance fields
 	   */
@@ -235,13 +235,13 @@ typedef struct instw_t {
 	  /* the public path, hiding translation */
 	char path[PATH_MAX+1];
 	  /* the public resolved path, hiding translation */
-	char reslvpath[PATH_MAX+1];  
+	char reslvpath[PATH_MAX+1];
 	  /* the real resolved path, exposing tranlsation */
 	char truepath[PATH_MAX+1];
 	  /* the real translated path */
 	char translpath[PATH_MAX+1];
 	  /* the list of all the equiv paths conducing to "reslvpath" */
-	string_t *equivpaths;  
+	string_t *equivpaths;
 	  /* the real path used to flag translation status */
 	char mtranslpath[PATH_MAX+1];
 	  /* the path given to a wrapped opendir */
@@ -301,7 +301,7 @@ static int vlambda_log(const char *logname,const char *format,va_list ap);
 static int lambda_log(const char *logname,const char *format,...)
 #ifdef __GNUC__
 	__attribute__((format(printf,2,3)))
-#endif 
+#endif
 ;
 */
 
@@ -316,7 +316,7 @@ static inline int logg(const char *format,...)
 static inline int debug(int dbglvl,const char *format,...)
 #ifdef __GNUC__
 	__attribute__((format(printf, 2, 3)))
-#endif 
+#endif
 ;
 
 #define unset_okwrap() (__instw.gstatus &= ~INSTW_OKWRAP)
@@ -412,7 +412,7 @@ void _init(void) {
 }
 
 void _fini(void) {
-	instw_fini();	
+	instw_fini();
 }
 
 /*
@@ -430,13 +430,13 @@ static int vlambda_log(const char *logname,const char *format,va_list ap) {
 	int logfd;
 	int rcod=0;
         int s_errno;
- 
+
         /* save errno */
         s_errno = errno;
 
         buffer[BUFSIZE-2] = '\n';
         buffer[BUFSIZE-1] = '\0';
-   
+
 	count=vsnprintf(buffer,BUFSIZE,format,ap);
 	if(count == -1) {
 		  /* The buffer was not big enough */
@@ -447,7 +447,7 @@ static int vlambda_log(const char *logname,const char *format,va_list ap) {
         {
                 count = strlen(buffer);
         }
-       	
+
 	if(logname!=NULL) {
 		logfd=true_open(logname,O_WRONLY|O_CREAT|O_APPEND,0666);
 		if(logfd>=0) {
@@ -466,11 +466,11 @@ static int vlambda_log(const char *logname,const char *format,va_list ap) {
 		}
 	} else {
 		syslog(LOGLEVEL, "%s", buffer);
-	}	
+	}
 
 	/* restore errno */
         errno = s_errno;
-	
+
 	return rcod;
 }
 
@@ -480,11 +480,11 @@ static int vlambda_log(const char *logname,const char *format,va_list ap) {
  * task      = /   logs a message to the specified file, or via syslog
  *               if no file is specified. /
  *
- * returns   = /  0 ok. message logged / 
+ * returns   = /  0 ok. message logged /
  *
- * note      = / 
- * 	--This *general* log procedure was justified by the debug mode 
- *  which used either stdout or stderr, thus interfering with the 
+ * note      = /
+ * 	--This *general* log procedure was justified by the debug mode
+ *  which used either stdout or stderr, thus interfering with the
  *  observed process.
  *      --From now, we output nothing to stdout/stderr.
  * /
@@ -506,18 +506,18 @@ static int lambda_log(const char *logname,const char *format, ...) {
 static inline int logg(const char *format,...) {
 	char *logname;
 	va_list ap;
-	int rcod; 
-	
+	int rcod;
+
 	logname=getenv("INSTW_LOGFILE");
 	va_start(ap,format);
 	rcod=vlambda_log(logname,format,ap);
 	va_end(ap);
-	
+
 	return rcod;
 }
 
 static inline int debug(int dbglvl,const char *format,...) {
-	int rcod=0; 
+	int rcod=0;
 #ifdef DEBUG
 	char *logname;
 	va_list ap;
@@ -530,7 +530,7 @@ static inline int debug(int dbglvl,const char *format,...) {
 	va_start(ap,format);
 	rcod=vlambda_log(logname,format,ap);
 	va_end(ap);
-#endif	
+#endif
 
 	return rcod;
 }
@@ -540,9 +540,9 @@ static inline int debug(int dbglvl,const char *format,...) {
  *
  * note      = /
  *	--We use realpath here, but this function calls __lxstat().
- *	We want to only use "real" calls in wrapping code, hence the 
+ *	We want to only use "real" calls in wrapping code, hence the
  *      barrier established by unset_okwrap()/reset_okwrap().
- *      --We try to canonicalize as much as possible, considering that 
+ *      --We try to canonicalize as much as possible, considering that
  * /
  */
 static int canonicalize(const char *path, char *resolved_path) {
@@ -556,7 +556,7 @@ static int canonicalize(const char *path, char *resolved_path) {
 	if(!realpath(path,resolved_path)) {
 		if((path[0] != '/')) {
 			/* The path could not be canonicalized, append it
-		 	 * to the current working directory if it was not 
+		 	 * to the current working directory if it was not
 		 	 * an absolute path                               */
 			true_getcwd(resolved_path, PATH_MAX-2);
 			resolved_path[MAXPATHLEN-2] = '\0';
@@ -576,7 +576,7 @@ static int canonicalize(const char *path, char *resolved_path) {
         errno = s_errno;
 
 	return 0;
-} 
+}
 
 /*
  * procedure = / rc:=reduce(path) /
@@ -620,7 +620,7 @@ static int reduce(char *path) {
 		memmove(off, off+2, len - 1 - (off-path));
 		return reduce(path);
 	}
-	
+
 	/* Finally, do /../ */
 	if((off = strstr(path, "/../"))) {
 		char *off2 = off;
@@ -678,10 +678,10 @@ static int make_path (const char *path) {
 		}
 		i++;
 	}
-	
+
         /* restore errno */
         errno = s_errno;
-        
+
 	return 0;
 }
 
@@ -689,18 +689,18 @@ static int make_path (const char *path) {
 /*
  * procedure = / rc:=copy_path(truepath,translroot) /
  *
- * task      = /   do an exact translation of 'truepath' under 'translroot', 
- *               the directory path to the new objet is not created / 
+ * task      = /   do an exact translation of 'truepath' under 'translroot',
+ *               the directory path to the new objet is not created /
  *
- * returns   = /  0 ok. translation done 
+ * returns   = /  0 ok. translation done
  *               -1 failed. cf errno /
  *
- * note      = / 
- *	--we suppose that 'translroot' has no trailing '/' 
- *	--no overwrite is done is the target object already exists 
- *	--the copy method depends on the source object type. 
- *	--we don't fail if the source object doesn't exist. 
- *	--we don't create the directory path because that would lead in the 
+ * note      = /
+ *	--we suppose that 'translroot' has no trailing '/'
+ *	--no overwrite is done is the target object already exists
+ *	--the copy method depends on the source object type.
+ *	--we don't fail if the source object doesn't exist.
+ *	--we don't create the directory path because that would lead in the
  *      the translation case not to reference the newly created directories
  * /
  */
@@ -729,7 +729,7 @@ static int copy_path(const char *truepath,const char *translroot) {
 			errno=ENAMETOOLONG;
 			return -1;
 		}
-		
+
 		strncpy(translpath,translroot,PATH_MAX);
 		strncat(translpath,truepath,PATH_MAX-truesz);
 
@@ -750,46 +750,46 @@ static int copy_path(const char *truepath,const char *translroot) {
 						trueinfo.st_mode))<0	) {
 				close(truefd);
 				return -1;
-			}			
-			
+			}
+
 			while((bytes=read(truefd,buffer,BUFSIZ))>0)
 				write(translfd,buffer,bytes);
-	
+
 			close(truefd);
 			close(translfd);
 		}
-	
+
 		  /* directory */
 		if(S_ISDIR(trueinfo.st_mode)) {
 			if(true_mkdir(translpath,trueinfo.st_mode)) return -1;
 		}
-	
+
 		  /* block special file */
 		if(S_ISBLK(trueinfo.st_mode)) {
 			if(true_mknod(	translpath,trueinfo.st_mode|S_IFBLK,
 					trueinfo.st_rdev	)) return -1;
 		}
-	
+
 		  /* character special file */
 		if(S_ISCHR(trueinfo.st_mode)) {
 			if(true_mknod(	translpath,trueinfo.st_mode|S_IFCHR,
 					trueinfo.st_rdev	)) return -1;
 		}
-		 
+
 		  /* fifo special file */
 		if(S_ISFIFO(trueinfo.st_mode)) {
 			if(true_mknod(translpath,trueinfo.st_mode|S_IFIFO,0))
 				return -1;
 		}
-		
+
 		timbuf.actime=trueinfo.st_atime;
 		timbuf.modtime=trueinfo.st_mtime;
 		true_utime(translpath,&timbuf);
-		
+
 		if(!S_ISLNK(trueinfo.st_mode)) {
 			true_chown(translpath,trueinfo.st_uid,trueinfo.st_gid);
-			true_chmod(translpath,trueinfo.st_mode); 
-		}	
+			true_chmod(translpath,trueinfo.st_mode);
+		}
 	}
 
 	return 0;
@@ -804,8 +804,8 @@ static int copy_path(const char *truepath,const char *translroot) {
  * returns   = /  0 is not a member
  *                1 is a member /
  *
- * note      = /   __instw.exclude must be initialized / 
- * 
+ * note      = /   __instw.exclude must be initialized /
+ *
  */
 static inline int path_excluded(const char *truepath) {
 	string_t *pnext;
@@ -819,7 +819,7 @@ static inline int path_excluded(const char *truepath) {
 			result=1;
 			break;
 		}
-		pnext=pnext->next;	
+		pnext=pnext->next;
 	}
 
 	return result;
@@ -828,21 +828,21 @@ static inline int path_excluded(const char *truepath) {
 /*
  * procedure = / rc:=unlink_recursive(truepath) /
  *
- * task      = /   dangerous function that unlink either a file or 
- *               an entire subtree. / 
+ * task      = /   dangerous function that unlink either a file or
+ *               an entire subtree. /
  *
- * returns   = /  0 ok. recursive unlink done 
+ * returns   = /  0 ok. recursive unlink done
  *               -1 failed. cf errno /
  *
- * note      = / 
- *	--this procedure was needed by instw_makedirls(), in order to 
+ * note      = /
+ *	--this procedure was needed by instw_makedirls(), in order to
  *	erase a previously created temporary subtree.
- *      --it must be called with an absolute path, and only to delete 
+ *      --it must be called with an absolute path, and only to delete
  *      well identified trees.
  *      --i think it is a very weak implementation, so avoid using it
  *      to unlink too deep trees, or rewrite it to avoid recursivity.
  * /
- * 
+ *
  */
 static int unlink_recursive(const char *truepath) {
 	int rcod;
@@ -865,22 +865,22 @@ static int unlink_recursive(const char *truepath) {
 		if(wdir==NULL) return -1;
 		while((went=true_readdir(wdir))!=NULL) {
 			  /* we avoid big inifinite recursion troubles */
-			if( 	went->d_name[0]=='.' && 
+			if( 	went->d_name[0]=='.' &&
 				(	(went->d_name[1]=='\0') ||
 					(	went->d_name[1]=='.' &&
-						went->d_name[2]=='\0') ) ) 
-				{ continue; }	
-			
+						went->d_name[2]=='\0') ) )
+				{ continue; }
+
 			  /* let's get the absolute path to this entry */
-			strcpy(wpath,truepath);	
+			strcpy(wpath,truepath);
 			strcat(wpath,"/");
 			strcat(wpath,went->d_name);
 			rcod=true_lstat(wpath,&winfo);
 			if(rcod!=0) {
 				closedir(wdir);
 				return -1;
-			}	
-		
+			}
+
 			if(S_ISDIR(winfo.st_mode)) {
 				unlink_recursive(wpath);
 				true_rmdir(wpath);
@@ -897,12 +897,12 @@ static int unlink_recursive(const char *truepath) {
 	return rcod;
 }
 
-/* 
+/*
  * procedure = / rc:=expand_path(&list,prefix,suffix) /
  *
- * task      = /   from a given path, generates all the paths that could 
+ * task      = /   from a given path, generates all the paths that could
  *               be derived from it, through symlinks expansion. /
- * 
+ *
  * note      = /
  *	--this procedure has been implemented to enhance the method used
  *	to reference files that have been translated.
@@ -935,11 +935,11 @@ int expand_path(string_t **list,const char *prefix,const char *suffix) {
 		(*list)->string=malloc(strlen(prefix)+1);
 		strcpy((*list)->string,prefix);
 		(*list)->next=NULL;
-		finalize(0);	
+		finalize(0);
 	}
 
-	  /* we parse the next suffix subscript */	
-	parse_suffix(pnp,pns,suffix);	
+	  /* we parse the next suffix subscript */
+	parse_suffix(pnp,pns,suffix);
 	strcpy(nprefix,prefix);
 	strcat(nprefix,pnp);
 	strcpy(nsuffix,pns);
@@ -947,10 +947,10 @@ int expand_path(string_t **list,const char *prefix,const char *suffix) {
 	rcod=true_lstat(nprefix,&ninfo);
 	if( (rcod!=0) ||
 	    (rcod==0 && !S_ISLNK(ninfo.st_mode))) {
-		expand_path(list,nprefix,nsuffix);	
+		expand_path(list,nprefix,nsuffix);
 	} else {
 		expand_path(&list1,nprefix,nsuffix);
-		
+
 		lnksz=true_readlink(nprefix,lnkpath,PATH_MAX);
 		lnkpath[lnksz]='\0';
 		if(lnkpath[0]!='/') {
@@ -967,7 +967,7 @@ int expand_path(string_t **list,const char *prefix,const char *suffix) {
 			if(lnkpath[len-1]=='/') {lnkpath[len-1]='\0';}
 			strcpy(nprefix,"");
 			strcpy(nwork,lnkpath);
-			strcat(nwork,nsuffix);	
+			strcat(nwork,nsuffix);
 			strcpy(nsuffix,nwork);
 			expand_path(&list2,nprefix,nsuffix);
 		}
@@ -976,11 +976,11 @@ int expand_path(string_t **list,const char *prefix,const char *suffix) {
 		pthis=*list;
 		while(pthis->next!=NULL) {pthis=pthis->next;}
 		pthis->next=list2;
-	}	
+	}
 
 	finalize:
 
-	return rcod;		
+	return rcod;
 }
 
 int parse_suffix(char *pnp,char *pns,const char *suffix) {
@@ -991,7 +991,7 @@ int parse_suffix(char *pnp,char *pns,const char *suffix) {
 	strcpy(pns,"");
 
 	p=pnp;
-	
+
 	if(*p=='\0') {
 		strcpy(pns,"");
 	} else {
@@ -1002,7 +1002,7 @@ int parse_suffix(char *pnp,char *pns,const char *suffix) {
 				*p='\0';
 				break;
 			}
-			p++;	
+			p++;
 		}
 	}
 
@@ -1069,7 +1069,7 @@ static int __instw_printdirent64(struct dirent64 *entry) {
 static int instw_print(instw_t *instw) {
 	string_t *pnext;
 	int i;
-	
+
 	debug(	4,
 		"instw(%p) {\n"
 		"\tgstatus     : %d\n"
@@ -1103,7 +1103,7 @@ static int instw_print(instw_t *instw) {
 		debug(	4,
 			"\texclude     : (%02d) \"%.*s\"\n",
 			++i,PATH_MAX,pnext->string	);
-		pnext=pnext->next;	
+		pnext=pnext->next;
 	}
 
 	debug(	4,
@@ -1123,7 +1123,7 @@ static int instw_print(instw_t *instw) {
 		debug(	4,
 			"\tequivpaths  : (%02d) \"%.*s\"\n",
 			++i,PATH_MAX,pnext->string	);
-		pnext=pnext->next;	
+		pnext=pnext->next;
 	}
 
 	debug(	4,
@@ -1134,19 +1134,19 @@ static int instw_print(instw_t *instw) {
 		PATH_MAX,(char*)(instw->mdirlspath)
 		);
 
-	return 0;	
+	return 0;
 }
 #endif
 
 /*
  * procedure = / rc:=instw_init() /
  *
- * task      = /   initializes the '__transl' fields, and fills the fields 
- *		 provided by the environment. 
- *                 this structure is a reference enabling faster 
+ * task      = /   initializes the '__transl' fields, and fills the fields
+ *		 provided by the environment.
+ *                 this structure is a reference enabling faster
  *		 local structure creations. /
  *
- * returns   = /  0 ok. env set 
+ * returns   = /  0 ok. env set
  *               -1 failed. /
  */
 static int instw_init(void) {
@@ -1182,7 +1182,7 @@ static int instw_init(void) {
 	okbackup=0;
 	oktransl=0;
 	okwrap=0;
-	
+
 	__instw.gstatus=0;
 	__instw.error=0;
 	__instw.status=0;
@@ -1220,18 +1220,18 @@ static int instw_init(void) {
 				"Please check the INSTW_ROOTPATH and "
 				"be sure that it does exist please !\n"
 				"given value : %s\n", __instw.root);
-			return -1;	
+			return -1;
 		}
 
 		if((pbackup=getenv("INSTW_BACKUP"))) {
 			if(	!strcmp(pbackup,"1") ||
 				!strcmp(pbackup,"yes") ||
 				!strcmp(pbackup,"true")	) {
-			
+
 				if((strlen(__instw.root)+strlen(_BACKUP))>PATH_MAX) {
 					fprintf(stderr,
 						"Backup path would exceed PATH_MAX. Aborting.\n");
-					return -1;	
+					return -1;
 				}
 				__instw.backup=malloc(strlen(__instw.root)+strlen(_BACKUP)+1);
 				if(NULL==__instw.backup) return -1;
@@ -1239,78 +1239,78 @@ static int instw_init(void) {
 				strcat(__instw.backup,_BACKUP);
 
 				  /* we create the path that precautiously shouldn't exist */
-				true_mkdir(__instw.backup,S_IRWXU);  
+				true_mkdir(__instw.backup,S_IRWXU);
 
 				okbackup=1;
-			} 
-			else if(	strcmp(pbackup,"0") && 
+			}
+			else if(	strcmp(pbackup,"0") &&
 					strcmp(pbackup,"no") &&
 					strcmp(pbackup,"false")	) {
 				fprintf(stderr,
 					"Please check the INSTW_BACKUP value please !\n"
 					"Recognized values are : 1/0,yes/no,true/false.\n");
-				return -1;	
-			}		
+				return -1;
+			}
 		}
 
 		if((ptransl=getenv("INSTW_TRANSL"))) {
 			if(	!strcmp(ptransl,"1") ||
 				!strcmp(ptransl,"yes") ||
 				!strcmp(ptransl,"true")	) {
-		
+
 				if((strlen(__instw.root)+strlen(_TRANSL))>PATH_MAX) {
 					fprintf(stderr,
 						"Transl path would exceed PATH_MAX. Aborting.\n");
-					return -1;	
+					return -1;
 				}
 				__instw.transl=malloc(strlen(__instw.root)+strlen(_TRANSL)+1);
 				if(NULL==__instw.transl) return -1;
 				strcpy(__instw.transl,__instw.root);
 				strcat(__instw.transl,_TRANSL);
-			
+
 				  /* we create the path that precautiously shouldn't exist */
-				true_mkdir(__instw.transl,S_IRWXU);  
-			
+				true_mkdir(__instw.transl,S_IRWXU);
+
 				if((strlen(__instw.root)+strlen(_META))>PATH_MAX) {
 					fprintf(stderr,
 						"Meta path would exceed PATH_MAX. Aborting.\n");
-					return -1;	
+					return -1;
 				}
-				
+
 				__instw.meta=malloc(strlen(__instw.root)+strlen(_META)+1);
 				if(NULL==__instw.meta) return -1;
 				strcpy(__instw.meta,__instw.root);
 				strcat(__instw.meta,_META);
-			
+
 				  /* we create the path that precautiously shouldn't exist */
-				true_mkdir(__instw.meta,S_IRWXU); 
-	
+				true_mkdir(__instw.meta,S_IRWXU);
+
 				__instw.mtransl=malloc(strlen(__instw.meta)+strlen(_MTRANSL)+1);
 				if(NULL==__instw.mtransl) return -1;
 				strcpy(__instw.mtransl,__instw.meta);
 				strcat(__instw.mtransl,_MTRANSL);
-			
+
 				  /* we create the path that precautiously shouldn't exist */
-				true_mkdir(__instw.mtransl,S_IRWXU); 
+				true_mkdir(__instw.mtransl,S_IRWXU);
 
 				__instw.mdirls=malloc(strlen(__instw.meta)+strlen(_MDIRLS)+1);
 				if(NULL==__instw.mdirls) return -1;
 				strcpy(__instw.mdirls,__instw.meta);
 				strcat(__instw.mdirls,_MDIRLS);
-			
+
 				  /* we create the path that precautiously shouldn't exist */
-				true_mkdir(__instw.mdirls,S_IRWXU); 
+				true_mkdir(__instw.mdirls,S_IRWXU);
 
 				oktransl=1;
-			} 
-			else if(	strcmp(ptransl,"0") && 
+			}
+			else if(	strcmp(ptransl,"0") &&
 					strcmp(ptransl,"no") &&
 					strcmp(ptransl,"false")	) {
 				fprintf(stderr,
 					"Please check the INSTW_TRANSL value please !\n"
 					"Recognized values are : 1/0,yes/no,true/false.\n");
-				return -1;	
-			}		
+				return -1;
+			}
 		}
 	}
 
@@ -1330,8 +1330,8 @@ static int instw_init(void) {
 		(*ppnext)->string=malloc(strlen(wrkpath)+1);
 		strcpy((*ppnext)->string,wrkpath);
 		ppnext=&(*ppnext)->next;
-	}	
-	   
+	}
+
 	if((pexclude=getenv("INSTW_EXCLUDE"))) {
 		exclude=malloc(strlen(pexclude)+1);
 		strcpy(exclude,pexclude);
@@ -1350,7 +1350,7 @@ static int instw_init(void) {
 			ppnext=&(*ppnext)->next;
 			pexclude=strtok(NULL,",");
 		}
-	
+
 	}
 
 
@@ -1360,8 +1360,8 @@ static int instw_init(void) {
 	if(okinit) __instw.gstatus |= INSTW_INITIALIZED;
 	if(okwrap) __instw.gstatus |= INSTW_OKWRAP;
 	if(okbackup) __instw.gstatus |= INSTW_OKBACKUP;
-	if(oktransl) __instw.gstatus |= INSTW_OKTRANSL;	
-	
+	if(oktransl) __instw.gstatus |= INSTW_OKTRANSL;
+
 #if DEBUG
 	debug(4,"__instw(%p)\n",&__instw);
 	instw_print(&__instw);
@@ -1373,9 +1373,9 @@ static int instw_init(void) {
 /*
  * procedure = / rc:=instw_fini() /
  *
- * task      = /   properly finalizes the instw job /  
+ * task      = /   properly finalizes the instw job /
  *
- * returns   = /  0 ok. env set 
+ * returns   = /  0 ok. env set
  *               -1 failed. /
  */
 static int instw_fini(void) {
@@ -1391,12 +1391,12 @@ static int instw_fini(void) {
 
 	__instw.gstatus &= ~INSTW_INITIALIZED;
 
-	if(__instw.root != NULL) {free(__instw.root);__instw.root=NULL;}	
-	if(__instw.backup != NULL) {free(__instw.backup);__instw.backup=NULL;}	
-	if(__instw.transl != NULL) {free(__instw.transl);__instw.transl=NULL;}	
-	if(__instw.meta != NULL) {free(__instw.meta);__instw.meta=NULL;}	
-	if(__instw.mtransl != NULL) {free(__instw.mtransl);__instw.mtransl=NULL;}	
-	if(__instw.mdirls != NULL) {free(__instw.mdirls);__instw.mdirls=NULL;}	
+	if(__instw.root != NULL) {free(__instw.root);__instw.root=NULL;}
+	if(__instw.backup != NULL) {free(__instw.backup);__instw.backup=NULL;}
+	if(__instw.transl != NULL) {free(__instw.transl);__instw.transl=NULL;}
+	if(__instw.meta != NULL) {free(__instw.meta);__instw.meta=NULL;}
+	if(__instw.mtransl != NULL) {free(__instw.mtransl);__instw.mtransl=NULL;}
+	if(__instw.mdirls != NULL) {free(__instw.mdirls);__instw.mdirls=NULL;}
 
 	pthis=__instw.exclude;
 	while(pthis != NULL) {
@@ -1464,10 +1464,10 @@ static int instw_delete(instw_t *instw) {
 	return rcod;
 }
 
-/* 
+/*
  * procedure = / rc:=instw_setmetatransl(instw) /
  *
- * task      = / Refreshes as mush as possible the translation 
+ * task      = / Refreshes as mush as possible the translation
  *               status of a translated file /
  *
  * note      = /
@@ -1475,11 +1475,11 @@ static int instw_delete(instw_t *instw) {
  *   translation status flags have been setted.
  *        the only thing it does is referencing a file that has been
  *   flagged as "translated".
- *        if it is, we musn't try to use the eventual real version 
+ *        if it is, we musn't try to use the eventual real version
  *   of the file anymore, hence the full referencement under /mtransl.
  *
- *      --in some cases, for example when you create manually a subtree 
- *  and a file in this subtree directly directly in the translated fs 
+ *      --in some cases, for example when you create manually a subtree
+ *  and a file in this subtree directly directly in the translated fs
  *  (yes, it is possible) the meta infos won't exist.
  *        so, to be able to cope with this case, we firstly try to
  *  create the full reference to the file, and if this fails, we try
@@ -1502,29 +1502,29 @@ static int instw_setmetatransl(instw_t *instw) {
 #endif
 
 	if( !(instw->gstatus & INSTW_INITIALIZED) ||
-	    !(instw->gstatus & INSTW_OKTRANSL) ) finalize(0); 
+	    !(instw->gstatus & INSTW_OKTRANSL) ) finalize(0);
 
 	if(!(instw->status & INSTW_TRANSLATED) ) finalize(0);
 
-	if(instw->equivpaths==NULL) { 	
+	if(instw->equivpaths==NULL) {
 		expand_path(&(instw->equivpaths),"",instw->reslvpath);
-	}	
+	}
 
 #if DEBUG
 	instw_print(instw);
 #endif
 
-	pthis=instw->equivpaths;	
+	pthis=instw->equivpaths;
 	while(pthis!=NULL) {
 		strcpy(mtranslpath,instw->mtransl);
 		strcat(mtranslpath,pthis->string);
 		strcpy(reslvpath,pthis->string);
 
-		if( (true_stat(mtranslpath,&info)) && 
+		if( (true_stat(mtranslpath,&info)) &&
 		    (true_mkdir(mtranslpath,S_IRWXU)) ) {
 			strcpy(mtransldir,mtranslpath);
 			mesz=strlen(instw->mtransl);
-	
+
 			for(i=0;reslvpath[i]!='\0';i++) {
 				mtransldir[mesz+i]=reslvpath[i];
 				if(reslvpath[i]=='/') {
@@ -1532,14 +1532,14 @@ static int instw_setmetatransl(instw_t *instw) {
 					true_mkdir(mtransldir,S_IRWXU);
 				}
 			}
-	
+
 			true_mkdir(mtranslpath,S_IRWXU);
 		}
 
 		pthis=pthis->next;
 	}
 
-	finalize: 
+	finalize:
 
 	return rcod;
 }
@@ -1547,13 +1547,13 @@ static int instw_setmetatransl(instw_t *instw) {
 /*
  * procedure = / rc:=instw_setpath(instw,path) /
  *
- * task      = /   sets the 'instw->path' field and updates all the fields that 
+ * task      = /   sets the 'instw->path' field and updates all the fields that
  *               can be deduced from 'path', such as 'instw->translpath'. /
  *
- * inputs    = / path               The given path, as is 
+ * inputs    = / path               The given path, as is
  * outputs   = / instw->path        A stored copy of 'path'
  *               instw->truepath    The given path, canonicalized
- *               instw->translpath  The real translated path 
+ *               instw->translpath  The real translated path
  *               instw->mtranslpath The translation status path  /
  *
  * returns   = /  0 ok. path set
@@ -1584,22 +1584,22 @@ static int instw_setpath(instw_t *instw,const char *path) {
 		strcpy(instw->truepath,instw->path);
 	}
 	relen=strlen(instw->truepath);
-	
+
 	/* remove relative elements from the truepath */
 	reduce(instw->truepath);
-	
-	  /* 
-	   *   if library is not completely initialized, or if translation 
+
+	  /*
+	   *   if library is not completely initialized, or if translation
 	   * is not active, we make things so it is equivalent to the
 	   * to the identity, this avoid needs to cope with special cases.
 	   */
-	if(	!(instw->gstatus&INSTW_INITIALIZED) || 
+	if(	!(instw->gstatus&INSTW_INITIALIZED) ||
 		!(instw->gstatus&INSTW_OKTRANSL)) {
 		strncpy(instw->reslvpath,instw->truepath,PATH_MAX);
 		strncpy(instw->translpath,instw->truepath,PATH_MAX);
 		return 0;
 	}
-	
+
 	  /*
 	   *   we fill instw->reslvpath , applying the inversed translation
 	   * if truepath is inside /transl.
@@ -1612,16 +1612,16 @@ static int instw_setpath(instw_t *instw,const char *path) {
 
 	  /*
 	   *   if instw->path is relative, no troubles.
-	   *   but if it is absolute and located under /transl, we have 
+	   *   but if it is absolute and located under /transl, we have
 	   * to untranslate it.
 	   */
 	if( (instw->path[0]=='/') &&
 	    (strstr(instw->path,instw->transl)==instw->path)) {
 		strcpy(instw->path,instw->reslvpath);
-	} 
+	}
 
 	  /*
-	   * We must detect early 'path' matching with already translated files  
+	   * We must detect early 'path' matching with already translated files
 	   */
 	if(path_excluded(instw->truepath)) {
 		strncpy(instw->translpath,instw->truepath,PATH_MAX);
@@ -1636,7 +1636,7 @@ static int instw_setpath(instw_t *instw,const char *path) {
 		}
 		strncat(instw->translpath,instw->reslvpath,PATH_MAX-trlen);
 		instw->translpath[PATH_MAX]='\0';
-	}	
+	}
 
 	  /* Building the translation status path */
 	strncpy(instw->mtranslpath,instw->mtransl,PATH_MAX);
@@ -1663,7 +1663,7 @@ static int instw_setpath(instw_t *instw,const char *path) {
  *               relpath            The given path relative to dirfd, as is
  * outputs   = / instw->path        The full absolute (non-relative) path
  *               instw->truepath    The given path, canonicalized
- *               instw->translpath  The real translated path 
+ *               instw->translpath  The real translated path
  *               instw->mtranslpath The translation status path  /
  *
  * returns   = /  0 ok. path set
@@ -1677,7 +1677,7 @@ static int instw_setpathrel(instw_t *instw, int dirfd, const char *relpath) {
  * something is seriously messed up.
  */
 #define PROC_PATH_LEN 20
-	
+
 	debug(2,"instw_setpathrel(%p,%d,%s)\n",instw,dirfd,relpath);
 	int retval = -1, l;
 	char *newpath;
@@ -1699,7 +1699,7 @@ static int instw_setpathrel(instw_t *instw, int dirfd, const char *relpath) {
 		goto free_out;
 	newpath[l] = '/';
 	strcpy(newpath + l + 1, relpath);
-	
+
 	retval = instw_setpath(instw, newpath);
 
 free_out:
@@ -1715,11 +1715,11 @@ out:
  * procedure = / rc:=instw_getstatus(instw,status) /
  *
  * outputs   = / status  instw->path flags field status in the translated fs
- *                 INSTW_ISINROOT   file exists in the real fs 
+ *                 INSTW_ISINROOT   file exists in the real fs
  *                 INSTW_ISINTRANSL file exists in the translated fs
  *                 INSTW_TRANSLATED file has been translated /
  *
- * returns   = /  0 ok. stated 
+ * returns   = /  0 ok. stated
  *               -1 failed. cf errno /
  */
 static int instw_getstatus(instw_t *instw,int *status) {
@@ -1731,12 +1731,12 @@ static int instw_getstatus(instw_t *instw,int *status) {
 	debug(2,"instw_getstatus(%p,%p)\n",instw,status);
 #endif
 
-	  /* 
+	  /*
 	   * is the file referenced as being translated ?
 	   */
 	if( (instw->gstatus&INSTW_INITIALIZED) &&
 	    (instw->gstatus&INSTW_OKTRANSL) &&
-	   !(instw->status&INSTW_TRANSLATED) &&  
+	   !(instw->status&INSTW_TRANSLATED) &&
 	   !true_stat(instw->mtranslpath,&inode) ) {
 		instw->status |= INSTW_TRANSLATED;
 	}
@@ -1745,10 +1745,10 @@ static int instw_getstatus(instw_t *instw,int *status) {
 	   * do the file currently exist in the translated fs ?
 	   */
 	if( (instw->gstatus&INSTW_INITIALIZED) &&
-	     (instw->gstatus&INSTW_OKTRANSL) && 
+	     (instw->gstatus&INSTW_OKTRANSL) &&
 	     !true_stat(instw->translpath,&tinode) ) {
 		instw->status |= INSTW_ISINTRANSL;
-	}	
+	}
 
 	  /*
 	   * is it a newly created file, or a modified one ?
@@ -1757,11 +1757,11 @@ static int instw_getstatus(instw_t *instw,int *status) {
 	    !true_stat(instw->reslvpath,&rinode) ) {
 		instw->status |= INSTW_ISINROOT;
 	}
-	
+
 	  /*
-	   *   if the file exists, why is it not referenced as 
+	   *   if the file exists, why is it not referenced as
 	   * being translated ?
-	   *   we have to reference it and all the traversed 
+	   *   we have to reference it and all the traversed
 	   * directories leading to it.
 	   */
 	if( (instw->gstatus&INSTW_INITIALIZED) &&
@@ -1770,18 +1770,18 @@ static int instw_getstatus(instw_t *instw,int *status) {
 	    !(instw->status&INSTW_TRANSLATED) ) {
 		instw->status |= INSTW_TRANSLATED;
 		instw_setmetatransl(instw);
-	}    
-	  
+	}
+
 	  /*
-	   *   are the public resolved path and its translated counterpart 
+	   *   are the public resolved path and its translated counterpart
 	   * identical ? if so, we flag it
 	   */
 	if( (instw->gstatus & INSTW_INITIALIZED) &&
-	    (instw->gstatus & INSTW_OKTRANSL) && 
-	    (instw->status & INSTW_TRANSLATED) && 
+	    (instw->gstatus & INSTW_OKTRANSL) &&
+	    (instw->status & INSTW_TRANSLATED) &&
 	    (0==(strcmp(instw->truepath,instw->translpath))) ) {
-		instw->status |= INSTW_IDENTITY;  
-	}    
+		instw->status |= INSTW_IDENTITY;
+	}
 
 	*status=instw->status;
 
@@ -1793,21 +1793,21 @@ static int instw_getstatus(instw_t *instw,int *status) {
  *
  * task      = /   actually do the translation prepared in 'transl' /
  *
- * note      = /   --after a call to instw_apply(), the translation related 
- *                 status flags are updated. 
- *                 --if a translation is requested and if the original file 
+ * note      = /   --after a call to instw_apply(), the translation related
+ *                 status flags are updated.
+ *                 --if a translation is requested and if the original file
  *                 exists, all parent directories are created and referenced
  *                 if necessary.
  *                   if the original file does not exist, we translate at
  *                 least the existing path. /
  *
- * returns   = /  0 ok. translation done 
+ * returns   = /  0 ok. translation done
  *               -1 failed. cf errno     /
  */
 static int instw_apply(instw_t *instw) {
 	int rcod=0;
 	int status=0;
-	
+
 	char dirpart[PATH_MAX+1];
 	char basepart[PATH_MAX+1];
 	char *pdir;
@@ -1824,13 +1824,13 @@ static int instw_apply(instw_t *instw) {
 	instw_print(instw);
 #endif
 
-	  /* 
-	   * if library incompletely initialized or if translation 
-	   * is inactive, nothing to apply 
+	  /*
+	   * if library incompletely initialized or if translation
+	   * is inactive, nothing to apply
 	   */
 	if( !(instw->gstatus&INSTW_INITIALIZED) ||
-	    !(instw->gstatus&INSTW_OKTRANSL) )  finalize(0); 
-	 
+	    !(instw->gstatus&INSTW_OKTRANSL) )  finalize(0);
+
 	  /* let's get the file translation status */
 	if(instw_getstatus(instw,&status)) finalize(-1);
 
@@ -1839,7 +1839,7 @@ static int instw_apply(instw_t *instw) {
 
 	strcpy(basepart,instw->reslvpath);
 	strcpy(dirpart,instw->reslvpath);
-	
+
 	pbase=basename(basepart);
 	pdir=dirname(dirpart);
 
@@ -1847,9 +1847,9 @@ static int instw_apply(instw_t *instw) {
 	if(pdir[0]=='/' && pdir[1]=='\0' && pbase[0]=='\0') {
 		instw->status|=INSTW_TRANSLATED;
 		finalize(0);
-	}	
-	
-	instw_new(&iw);	
+	}
+
+	instw_new(&iw);
 	instw_setpath(&iw,pdir);
 	instw_apply(&iw);
 	instw_delete(&iw);
@@ -1864,7 +1864,7 @@ static int instw_apply(instw_t *instw) {
 			wpath[wsz]='\0';
 
 			instw_new(&iw);
-			if(wpath[0]!='/') { 
+			if(wpath[0]!='/') {
 				strcpy(linkpath,pdir);
 				strcat(linkpath,"/");
 				strcat(linkpath,wpath);
@@ -1878,7 +1878,7 @@ static int instw_apply(instw_t *instw) {
 		}
 	}
 
-	
+
 	instw->status|=INSTW_TRANSLATED;
 	instw_setmetatransl(instw);
 
@@ -1890,12 +1890,12 @@ static int instw_apply(instw_t *instw) {
 /*
  * procedure = / rc:=instw_filldirls(instw) /
  *
- * task      = /   used to create dummy entries in the mdirlspath reflecting 
+ * task      = /   used to create dummy entries in the mdirlspath reflecting
  *               the content that would have been accessible with no
  *               active translation. /
  *
- * note      = / 
- *	--This procedure must be called after instw_makedirls() has been 
+ * note      = /
+ *	--This procedure must be called after instw_makedirls() has been
  *	called itself.
  *	--It implies that the translated directory and the real one are
  *      distincts, but it does not matter if one of them, or both is empty
@@ -1919,18 +1919,18 @@ static int instw_filldirls(instw_t *instw) {
 	debug(2,"instw_filldirls(%p)\n",instw);
 #endif
 
-	if((wdir=true_opendir(instw->translpath))==NULL) { return -1; }	
+	if((wdir=true_opendir(instw->translpath))==NULL) { return -1; }
 	while((went=true_readdir(wdir))!=NULL) {
-		if( 	went->d_name[0]=='.' && 
+		if( 	went->d_name[0]=='.' &&
 			(	(went->d_name[1]=='\0') ||
 				(	went->d_name[1]=='.' &&
-					went->d_name[2]=='\0') ) ) 
-			{ continue; }	
+					went->d_name[2]=='\0') ) )
+			{ continue; }
 
 		strcpy(spath,instw->translpath);
 		strcat(spath,"/");
 		strcat(spath,went->d_name);
-		
+
 		if(true_lstat(spath,&sinfo)) { continue; }
 
 		strcpy(dpath,instw->mdirlspath);
@@ -1939,26 +1939,26 @@ static int instw_filldirls(instw_t *instw) {
 
 		  /* symbolic links */
 		if(S_ISLNK(sinfo.st_mode)) {
-			if((wsz=true_readlink(spath,lpath,PATH_MAX))>=0) { 
+			if((wsz=true_readlink(spath,lpath,PATH_MAX))>=0) {
 				lpath[wsz]='\0';
-				true_symlink(lpath,dpath); 
+				true_symlink(lpath,dpath);
 #if DEBUG
 				debug(4,"\tfilled symlink       : %s\n",dpath);
 #endif
 			}
-				
+
 		}
 
 		  /* regular file */
 		if(S_ISREG(sinfo.st_mode)) {
 			if((wfd=true_creat(dpath,sinfo.st_mode))>=0) {
-				close(wfd); 
+				close(wfd);
 #if DEBUG
 				debug(4,"\tfilled regular file  : %s\n",dpath);
 #endif
 			}
 		}
-	
+
 		  /* directory */
 		if(S_ISDIR(sinfo.st_mode)) {
 			true_mkdir(dpath,sinfo.st_mode);
@@ -1967,7 +1967,7 @@ static int instw_filldirls(instw_t *instw) {
 #endif
 
 		}
-	
+
 		  /* block special file */
 		if(S_ISBLK(sinfo.st_mode)) {
 			true_mknod(dpath,sinfo.st_mode|S_IFBLK,sinfo.st_rdev);
@@ -1976,7 +1976,7 @@ static int instw_filldirls(instw_t *instw) {
 #endif
 
 		}
-	
+
 		  /* character special file */
 		if(S_ISCHR(sinfo.st_mode)) {
 			true_mknod(dpath,sinfo.st_mode|S_IFCHR,sinfo.st_rdev);
@@ -1984,7 +1984,7 @@ static int instw_filldirls(instw_t *instw) {
 			debug(4,"\tfilled special char  : %s\n",dpath);
 #endif
 		}
-		 
+
 		  /* fifo special file */
 		if(S_ISFIFO(sinfo.st_mode)) {
 			true_mknod(dpath,sinfo.st_mode|S_IFIFO,0);
@@ -1992,17 +1992,17 @@ static int instw_filldirls(instw_t *instw) {
 			debug(4,"\tfilled special fifo  : %s\n",dpath);
 #endif
 		}
-			
+
 	}
 	closedir(wdir);
 
 	if((wdir=true_opendir(instw->reslvpath))==NULL) return -1;
 	while((went=true_readdir(wdir))!=NULL) {
-		if( 	went->d_name[0]=='.' && 
+		if( 	went->d_name[0]=='.' &&
 			(	(went->d_name[1]=='\0') ||
 				(	went->d_name[1]=='.' &&
-					went->d_name[2]=='\0') ) ) 
-			{ continue; }	
+					went->d_name[2]=='\0') ) )
+			{ continue; }
 
 		strcpy(spath,instw->reslvpath);
 		strcat(spath,"/");
@@ -2014,7 +2014,7 @@ static int instw_filldirls(instw_t *instw) {
 		instw_getstatus(&iw_entry,&status);
 
 		  /*
-		   *   This entry exists in the real fs, but has been 
+		   *   This entry exists in the real fs, but has been
 		   * translated and destroyed in the translated fs.
 		   *   So, we mustn't present it !!!
 		   */
@@ -2024,7 +2024,7 @@ static int instw_filldirls(instw_t *instw) {
 		strcpy(dpath,instw->mdirlspath);
 		strcat(dpath,"/");
 		strcat(dpath,went->d_name);
-	
+
 		  /* already exists in the translated fs, we iterate */
 		if(!true_lstat(dpath,&dinfo)) { continue; }
 
@@ -2042,13 +2042,13 @@ static int instw_filldirls(instw_t *instw) {
 		  /* regular file */
 		if(S_ISREG(sinfo.st_mode)) {
 			if((wfd=true_creat(dpath,sinfo.st_mode))>=0) {
-				close(wfd); 
+				close(wfd);
 #if DEBUG
 				debug(4,"\tfilled regular file  : %s\n",dpath);
 #endif
-			}	
+			}
 		}
-	
+
 		  /* directory */
 		if(S_ISDIR(sinfo.st_mode)) {
 			true_mkdir(dpath,sinfo.st_mode);
@@ -2056,7 +2056,7 @@ static int instw_filldirls(instw_t *instw) {
 			debug(4,"\tfilled directory     : %s\n",dpath);
 #endif
 		}
-	
+
 		  /* block special file */
 		if(S_ISBLK(sinfo.st_mode)) {
 			true_mknod(dpath,sinfo.st_mode|S_IFBLK,sinfo.st_rdev);
@@ -2064,7 +2064,7 @@ static int instw_filldirls(instw_t *instw) {
 			debug(4,"\tfilled special block : %s\n",dpath);
 #endif
 		}
-	
+
 		  /* character special file */
 		if(S_ISCHR(sinfo.st_mode)) {
 			true_mknod(dpath,sinfo.st_mode|S_IFCHR,sinfo.st_rdev);
@@ -2072,7 +2072,7 @@ static int instw_filldirls(instw_t *instw) {
 			debug(4,"\tfilled special char  : %s\n",dpath);
 #endif
 		}
-		 
+
 		  /* fifo special file */
 		if(S_ISFIFO(sinfo.st_mode)) {
 			true_mknod(dpath,sinfo.st_mode|S_IFIFO,0);
@@ -2080,7 +2080,7 @@ static int instw_filldirls(instw_t *instw) {
 			debug(4,"\tfilled special fifo  : %s\n",dpath);
 #endif
 		}
-		
+
 		instw_delete(&iw_entry);
 	}
 	closedir(wdir);
@@ -2091,18 +2091,18 @@ static int instw_filldirls(instw_t *instw) {
 /*
  * procedure = / rc:=instw_makedirls(instw) /
  *
- * task      = /   eventually prepares a fake temporary directory used to 
+ * task      = /   eventually prepares a fake temporary directory used to
  *               present 'overlaid' content to opendir(),readdir()... /
  *
  * note      = /
- *      --This procedure must be called after instw_setpath(). 
+ *      --This procedure must be called after instw_setpath().
  *
  * 	--The "fake" temporary directories are created and...forgotten.
- *      If we need to reuse later the same directory, it is previously 
+ *      If we need to reuse later the same directory, it is previously
  *      erased, which ensures that it is correclty refreshed.
  * /
  *
- * returns   = /  0 ok. makedirls done 
+ * returns   = /  0 ok. makedirls done
  *               -1 failed. cf errno     /
  */
 static int instw_makedirls(instw_t *instw) {
@@ -2116,16 +2116,16 @@ static int instw_makedirls(instw_t *instw) {
 	debug(2,"instw_makedirls(%p)\n",instw);
 #endif
 
-	  /* 
-	   * if library incompletely initialized or if translation 
-	   * is inactive, nothing to do 
+	  /*
+	   * if library incompletely initialized or if translation
+	   * is inactive, nothing to do
 	   */
 	if( !(instw->gstatus&INSTW_INITIALIZED) ||
 	    !(instw->gstatus&INSTW_OKTRANSL)) {
 	    strcpy(instw->mdirlspath,instw->path);
-	    return 0; 
-	} 
-	 
+	    return 0;
+	}
+
 	  /* let's get the file translation status */
 	if(instw_getstatus(instw,&status)) return -1;
 
@@ -2133,7 +2133,7 @@ static int instw_makedirls(instw_t *instw) {
 	    ((status&INSTW_TRANSLATED) && (status&INSTW_IDENTITY)) ) {
 		strcpy(instw->mdirlspath,instw->path);
 	} else {
-		  /*   if it's a new directory, we open it in 
+		  /*   if it's a new directory, we open it in
 		   * the translated fs .
 		   *   otherwise, it means that we will have to construct a
 		   * merged directory.
@@ -2147,7 +2147,7 @@ static int instw_makedirls(instw_t *instw) {
 					instw->pid,
 					(long long int) translinfo.st_dev,
 					(long long int) translinfo.st_ino);
-		
+
 			strcpy(instw->mdirlspath,instw->mdirls);
 			strcat(instw->mdirlspath,wdirname);
 
@@ -2156,7 +2156,7 @@ static int instw_makedirls(instw_t *instw) {
 				unlink_recursive(instw->mdirlspath);
 			}
 			true_mkdir(instw->mdirlspath,S_IRWXU);
-	
+
 			  /* we construct the merged directory here */
 			instw_filldirls(instw);
 		}
@@ -2169,7 +2169,7 @@ static int instw_makedirls(instw_t *instw) {
 	return rcod;
 }
 
-/* 
+/*
  *
  */
 static int backup(const char *path) {
@@ -2182,7 +2182,7 @@ static int backup(const char *path) {
 	struct utimbuf timbuf;
 
 #if DEBUG
-	debug(2,"========= backup () =========  path: %s\n", path); 
+	debug(2,"========= backup () =========  path: %s\n", path);
 #endif
 
 	  /* INSTW_OKBACKUP not set, we won't do any backups */
@@ -2198,7 +2198,7 @@ static int backup(const char *path) {
 		#if DEBUG
 		debug(3,"%s is inside /dev. Ignoring.\n", path);
 		#endif
-		return 0; 
+		return 0;
 	}
 
 	/* Now check for /tmp */
@@ -2206,7 +2206,7 @@ static int backup(const char *path) {
 		#if DEBUG
 		debug(3,"%s is inside /tmp. Ignoring.\n", path);
 		#endif
-		return 0; 
+		return 0;
 	}
 
 	/* Finally, the backup path itself */
@@ -2214,7 +2214,7 @@ static int backup(const char *path) {
 		#if DEBUG
 		debug(3,"%s is inside the backup path. Ignoring.\n", path);
 		#endif
-		return 0; 
+		return 0;
 	}
 
 	/* Does it exist already? */
@@ -2232,7 +2232,7 @@ static int backup(const char *path) {
 		make_path(backup_path);
 
 		/* This one's just a placeholder */
-		placeholder = true_creat(backup_path, S_IREAD);  
+		placeholder = true_creat(backup_path, S_IREAD);
 		if (!(placeholder < 0)) close (placeholder);
 
 		#if DEBUG
@@ -2288,7 +2288,7 @@ static int backup(const char *path) {
 		}
 		i++;
 	}
-	
+
 	return 0;
 }
 
@@ -2305,7 +2305,7 @@ time_t time (time_t *timer) {
 return true_time(timer);
 }
 
-/* 
+/*
  * *****************************************************************************
  */
 
@@ -2326,7 +2326,7 @@ int chdir(const char *pathname) {
 	    !(__instw.gstatus & INSTW_OKWRAP) ) {
 		result=true_chdir(pathname);
 		return result;
-	}    
+	}
 
 	instw_new(&instw);
 	instw_setpath(&instw,pathname);
@@ -2350,7 +2350,7 @@ int chmod(const char *path, mode_t mode) {
 	instw_t instw;
 
 	REFCOUNT;
-	
+
 	if (!libc_handle)
 		initialize();
 
@@ -2446,8 +2446,8 @@ int chroot(const char *path) {
 	canonicalize(path, canonic);
 	result = true_chroot(path);
 	  /*
-	   * From now on, another log file will be written if 
-	   * INSTW_LOGFILE is set                          
+	   * From now on, another log file will be written if
+	   * INSTW_LOGFILE is set
 	   */
 	logg("%d\tchroot\t%s\t#%s\n", result, canonic, error(result));
 	return result;
@@ -2457,7 +2457,7 @@ int creat(const char *pathname, mode_t mode) {
 /* Is it a system call? */
 	int result;
 	instw_t instw;
-	
+
 	REFCOUNT;
 
 	if (!libc_handle)
@@ -2466,7 +2466,7 @@ int creat(const char *pathname, mode_t mode) {
 #if DEBUG
 	debug(2,"creat(%s,mode)\n",pathname);
 #endif
-	
+
 	  /* We were asked to work in "real" mode */
 	if( !(__instw.gstatus & INSTW_INITIALIZED) ||
 	    !(__instw.gstatus & INSTW_OKWRAP) ) {
@@ -2549,7 +2549,7 @@ FILE *fopen(const char *pathname, const char *mode) {
 
 	instw_new(&instw);
 	instw_setpath(&instw,pathname);
-	
+
 #if DEBUG
 	instw_print(&instw);
 #endif
@@ -2562,16 +2562,16 @@ FILE *fopen(const char *pathname, const char *mode) {
 	}
 
 	instw_getstatus(&instw,&status);
-	
+
 	if(status&INSTW_TRANSLATED) {
 		debug(4,"\teffective fopen(%s)\n",instw.translpath);
-		result=true_fopen(instw.translpath,mode); 
+		result=true_fopen(instw.translpath,mode);
 	} else {
 		debug(4,"\teffective fopen(%s)\n",instw.path);
 		result=true_fopen(instw.path,mode);
 	}
-	
-	if(mode[0]=='w'||mode[0]=='a'||mode[1]=='+') 
+
+	if(mode[0]=='w'||mode[0]=='a'||mode[1]=='+')
 		logg("%" PRIdPTR "\tfopen\t%s\t#%s\n",(intptr_t)result,
 		    instw.reslvpath,error(result));
 
@@ -2618,7 +2618,7 @@ char *getcwd(char *buffer,size_t size) {
 	}
 
 	if(	__instw.gstatus&INSTW_INITIALIZED &&
-		__instw.gstatus&INSTW_OKTRANSL && 
+		__instw.gstatus&INSTW_OKTRANSL &&
 		(NULL!=(result=true_getcwd(wpath,sizeof(wpath)))) ) {
 		  /* we untranslate any translated path */
 		if(strstr(wpath,__instw.transl)==wpath)	{
@@ -2656,7 +2656,7 @@ char *getcwd(char *buffer,size_t size) {
 #if DEBUG
 	debug(3,"\teffective getcwd(%s,%ld)\n",
 	      (result?buffer:"(null)"),(long int)size);
-#endif	
+#endif
 
 	return result;
 }
@@ -2684,7 +2684,7 @@ int lchown(const char *path, uid_t owner, gid_t group) {
 
 	instw_new(&instw);
 	instw_setpath(&instw,path);
-	
+
 #if DEBUG
 	instw_print(&instw);
 #endif
@@ -2695,7 +2695,7 @@ int lchown(const char *path, uid_t owner, gid_t group) {
 	result=true_lchown(instw.translpath,owner,group);
 	logg("%d\tlchown\t%s\t%d\t%d\t#%s\n",result,
 	    instw.reslvpath,owner,group,error(result));
-	    
+
 	instw_delete(&instw);
 
 	return result;
@@ -2735,11 +2735,11 @@ int link(const char *oldpath, const char *newpath) {
 	backup(instw_o.truepath);
 	instw_apply(&instw_o);
 	instw_apply(&instw_n);
-	
+
 	result=true_link(instw_o.translpath,instw_n.translpath);
 	logg("%d\tlink\t%s\t%s\t#%s\n",result,
 	    instw_o.reslvpath,instw_n.reslvpath,error(result));
-	    
+
 	instw_delete(&instw_o);
 	instw_delete(&instw_n);
 
@@ -2786,7 +2786,7 @@ int mkdir(const char *pathname, mode_t mode) {
 int __xmknod(int version,const char *pathname, mode_t mode,dev_t *dev) {
 	int result;
 	instw_t instw;
-	
+
 	REFCOUNT;
 
 	if (!libc_handle)
@@ -2817,7 +2817,7 @@ int __xmknod(int version,const char *pathname, mode_t mode,dev_t *dev) {
 	logg("%d\tmknod\t%s\t#%s\n",result,instw.reslvpath,error(result));
 
 	instw_delete(&instw);
-	
+
 	return result;
 }
 
@@ -2851,7 +2851,7 @@ int open(const char *pathname, int flags, ...) {
 
 	instw_new(&instw);
 	instw_setpath(&instw,pathname);
-	
+
 #if DEBUG
 	instw_print(&instw);
 #endif
@@ -2863,12 +2863,12 @@ int open(const char *pathname, int flags, ...) {
 
 	instw_getstatus(&instw,&status);
 
-	if(status&INSTW_TRANSLATED) 
+	if(status&INSTW_TRANSLATED)
 		result=true_open(instw.translpath,flags,mode);
 	else
 		result=true_open(instw.path,flags,mode);
-	
-	if(flags & (O_WRONLY | O_RDWR)) 
+
+	if(flags & (O_WRONLY | O_RDWR))
 		logg("%d\topen\t%s\t#%s\n",result,instw.reslvpath,error(result));
 
 	instw_delete(&instw);
@@ -2889,7 +2889,7 @@ DIR *opendir(const char *dirname) {
 #if DEBUG
 	debug(2,"opendir(%s)\n",dirname);
 #endif
-	
+
 	  /* We were asked to work in "real" mode */
 	if( !(__instw.gstatus & INSTW_INITIALIZED) ||
 	    !(__instw.gstatus & INSTW_OKWRAP) ) {
@@ -2965,7 +2965,7 @@ ssize_t readlink(const char *path,char *buf,size_t bufsiz) {
 	instw_new(&instw);
 	instw_setpath(&instw,path);
 	instw_getstatus(&instw,&status);
-	
+
 #if DEBUG
 	instw_print(&instw);
 #endif
@@ -2977,7 +2977,7 @@ ssize_t readlink(const char *path,char *buf,size_t bufsiz) {
 
 	instw_delete(&instw);
 
-	return result;	
+	return result;
 }
 
 char *realpath(const char *file_name,char *resolved_name) {
@@ -3004,12 +3004,12 @@ int rename(const char *oldpath, const char *newpath) {
 	instw_t newinstw;
 
 	REFCOUNT;
-	
+
 	if (!libc_handle)
 		initialize();
 
 #if DEBUG
-	debug(2,"rename(\"%s\",\"%s\")\n",oldpath,newpath);	
+	debug(2,"rename(\"%s\",\"%s\")\n",oldpath,newpath);
 #endif
 
 	  /* We were asked to work in "real" mode */
@@ -3071,9 +3071,9 @@ int rmdir(const char *pathname) {
 
 	result=true_rmdir(instw.translpath);
 	logg("%d\trmdir\t%s\t#%s\n",result,instw.reslvpath,error(result));
-	
+
 	instw_delete(&instw);
-	
+
 	return result;
 }
 
@@ -3099,7 +3099,7 @@ int scandir(	const char *dir,struct dirent ***namelist,
 	result=true_scandir(dir,namelist,select,compar);
 
 	return result;
-}		
+}
 
 int __xstat(int version,const char *pathname,struct stat *info) {
 	int result;
@@ -3140,7 +3140,7 @@ int __xstat(int version,const char *pathname,struct stat *info) {
 
 	instw_delete(&instw);
 
-	return result;	
+	return result;
 }
 
 int __lxstat(int version,const char *pathname,struct stat *info) {
@@ -3182,7 +3182,7 @@ int __lxstat(int version,const char *pathname,struct stat *info) {
 
 	instw_delete(&instw);
 
-	return result;	
+	return result;
 }
 
 int symlink(const char *pathname, const char *slink) {
@@ -3217,12 +3217,12 @@ int symlink(const char *pathname, const char *slink) {
 
 	backup(instw_slink.truepath);
 	instw_apply(&instw_slink);
-	
+
 	result=true_symlink(pathname,instw_slink.translpath);
 	logg("%d\tsymlink\t%s\t%s\t#%s\n",
            result,instw.path,instw_slink.reslvpath,error(result));
 
-	    
+
 	instw_delete(&instw);
 	instw_delete(&instw_slink);
 
@@ -3565,7 +3565,7 @@ FILE *fopen64(const char *pathname, const char *mode) {
 #if DEBUG
 	debug(2,"fopen64(%s,%s)\n",pathname,mode);
 #endif
-	
+
 	  /* We were asked to work in "real" mode */
 	if( !(__instw.gstatus & INSTW_INITIALIZED) ||
 	    !(__instw.gstatus & INSTW_OKWRAP) ) {
@@ -3575,7 +3575,7 @@ FILE *fopen64(const char *pathname, const char *mode) {
 
 	instw_new(&instw);
 	instw_setpath(&instw,pathname);
-	
+
 #if DEBUG
 	instw_print(&instw);
 #endif
@@ -3586,16 +3586,16 @@ FILE *fopen64(const char *pathname, const char *mode) {
 	}
 
 	instw_getstatus(&instw,&status);
-	
+
 	if(status&INSTW_TRANSLATED) {
 		debug(4,"\teffective fopen64(%s)\n",instw.translpath);
-		result=true_fopen64(instw.translpath,mode); 
+		result=true_fopen64(instw.translpath,mode);
 	} else {
 		debug(4,"\teffective fopen64(%s)\n",instw.path);
 		result=true_fopen64(instw.path,mode);
 	}
 
-	if(mode[0]=='w'||mode[0]=='a'||mode[1]=='+') 
+	if(mode[0]=='w'||mode[0]=='a'||mode[1]=='+')
 		logg("%" PRIdPTR "\tfopen64\t%s\t#%s\n",(intptr_t)result,
 		    instw.reslvpath,error(result));
 
@@ -3653,8 +3653,8 @@ int open64(const char *pathname, int flags, ...) {
 		debug(4,"\teffective open64(%s)\n",instw.path);
 		result=true_open64(instw.path,flags,mode);
 	}
-	
-	if(flags & (O_WRONLY | O_RDWR)) 
+
+	if(flags & (O_WRONLY | O_RDWR))
 		logg("%d\topen\t%s\t#%s\n",result,
 		    instw.reslvpath,error(result));
 
@@ -3711,7 +3711,7 @@ int scandir64(	const char *dir,struct dirent64 ***namelist,
 	result=true_scandir64(dir,namelist,select,compar);
 
 	return result;
-}		
+}
 
 int __xstat64(int version,const char *pathname,struct stat64 *info) {
 	int result;
@@ -3745,11 +3745,11 @@ int __xstat64(int version,const char *pathname,struct stat64 *info) {
 		debug(4,"\teffective stat64(%s,%p)\n",
 		      instw.path,info);
 		result=true_xstat64(version,instw.path,info);
-	}	
+	}
 
 	instw_delete(&instw);
 
-	return result;	
+	return result;
 }
 
 int __lxstat64(int version,const char *pathname,struct stat64 *info) {
@@ -3788,7 +3788,7 @@ int __lxstat64(int version,const char *pathname,struct stat64 *info) {
 
 	instw_delete(&instw);
 
-	return result;	
+	return result;
 }
 
 int truncate64(const char *path, __off64_t length) {
@@ -3825,7 +3825,7 @@ int truncate64(const char *path, __off64_t length) {
 	instw_apply(&instw);
 
 	result=true_truncate64(instw.translpath,length);
-	
+
 	logg("%d\ttruncate\t%s\t%d\t#%s\n",result,
 	    instw.reslvpath,(int)length,error(result));
 
@@ -3855,7 +3855,7 @@ int truncate64(const char *path, __off64_t length) {
  */
 
 #if (GLIBC_MINOR >= 4)
- 
+
 int openat (int dirfd, const char *path, int flags, ...) {
  	mode_t mode = 0;
  	va_list arg;
@@ -3864,47 +3864,47 @@ int openat (int dirfd, const char *path, int flags, ...) {
  		mode = va_arg(arg, mode_t);
  		va_end (arg);
  	}
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
                  return open(path, flags, mode);
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
  	debug(2, "openat(%d, %s, 0x%x, 0%o)\n", dirfd, path, flags, mode);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP))
  		return true_open(path,flags,mode);
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
- 	
+
  	result=open(instw.path,flags,mode);
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 }
 
 int fchmodat (int dirfd, const char *path, mode_t mode, int flag) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
 		{
@@ -3913,40 +3913,40 @@ int fchmodat (int dirfd, const char *path, mode_t mode, int flag) {
 		 #endif
 		 return chmod(path, mode);
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
  	debug(2, "fchmodat(%d,%s,0%o)\n", dirfd, path, mode);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP))
  		return true_chmod(path,mode);
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
- 	
+
  	result=chmod(instw.path,mode);
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 }
 
 int fchownat (int dirfd, const char *path,uid_t owner,gid_t group,int flags) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
 		{
@@ -3958,23 +3958,23 @@ int fchownat (int dirfd, const char *path,uid_t owner,gid_t group,int flags) {
 		 /* lchwon() behaviour, according to fchownat(2) */
 
 		 if ( flags & AT_SYMLINK_NOFOLLOW ) {
-		    return lchown(path, owner, group); 
+		    return lchown(path, owner, group);
 		 }
 		 else {
 		    return chown(path, owner, group);
 		 }
 
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2,"fchownat(%d,%s,%d,%d,0%o)\n", dirfd, path, owner, group, flags);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP)) {
@@ -3983,16 +3983,16 @@ int fchownat (int dirfd, const char *path,uid_t owner,gid_t group,int flags) {
 		 /* lchwon() behaviour, according to fchownat(2) */
 
 		 if ( flags & AT_SYMLINK_NOFOLLOW ) {
-		    return true_lchown(path, owner, group); 
+		    return true_lchown(path, owner, group);
 		 }
 		 else {
 		    return true_chown(path, owner, group);
 		 }
  	}
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
@@ -4000,25 +4000,25 @@ int fchownat (int dirfd, const char *path,uid_t owner,gid_t group,int flags) {
 	 /* lchwon() behaviour, according to fchownat(2) */
 
 	 if ( flags & AT_SYMLINK_NOFOLLOW ) {
-	    result=lchown(instw.path, owner, group); 
+	    result=lchown(instw.path, owner, group);
 	 }
 	 else {
  	    result=chown(instw.path, owner, group);
 	 }
 
 
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 }
 
 
 int __fxstatat (int version, int dirfd, const char *path, struct stat *s, int flags) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
 		{
@@ -4030,23 +4030,23 @@ int __fxstatat (int version, int dirfd, const char *path, struct stat *s, int fl
 		 /* lstat() behaviour, according to fstatat(2) */
 
 		 if ( flags & AT_SYMLINK_NOFOLLOW ) {
-		    return __lxstat(version, path, s); 
+		    return __lxstat(version, path, s);
 		 }
 		 else {
 		    return __xstat(version, path, s);
 		 }
 
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "__fxstatat(%d,%s,%p,0%o)\n", dirfd, path, s, flags);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP)) {
@@ -4056,21 +4056,21 @@ int __fxstatat (int version, int dirfd, const char *path, struct stat *s, int fl
 		 /* lstat() behaviour, according to fstatat(2) */
 
 		 if ( flags & AT_SYMLINK_NOFOLLOW ) {
-		    return true_lxstat(version, path, s); 
+		    return true_lxstat(version, path, s);
 		 }
 		 else {
  		    return true_xstat(version, path, s);
 		 }
 	}
 
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
- 
+
 		 /* If we have AT_SYMLINK_NOFOLLOW then we need  */
 		 /* lstat() behaviour, according to fstatat(2) */
 
@@ -4079,19 +4079,19 @@ int __fxstatat (int version, int dirfd, const char *path, struct stat *s, int fl
 		 }
 		 else {
  		    result=__xstat(version, instw.path, s);
- 		    
-		 }	
- 	
+
+		 }
+
  	instw_delete(&instw);
- 
+
 	return result;
 }
 
 int __fxstatat64 (int version, int dirfd, const char *path, struct stat64 *s, int flags) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
 		{
@@ -4103,23 +4103,23 @@ int __fxstatat64 (int version, int dirfd, const char *path, struct stat64 *s, in
 		 /* lstat() behaviour, according to fstatat(2) */
 
 		 if ( flags & AT_SYMLINK_NOFOLLOW ) {
-		    return __lxstat64(version, path, s); 
+		    return __lxstat64(version, path, s);
 		 }
 		 else {
 		    return __xstat64(version, path, s);
 		 }
 
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "__fxstatat(%d,%s,%p,0%o)\n", dirfd, path, s, flags);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP)) {
@@ -4128,17 +4128,17 @@ int __fxstatat64 (int version, int dirfd, const char *path, struct stat64 *s, in
 		 /* lstat() behaviour, according to fstatat(2) */
 
 		 if ( flags & AT_SYMLINK_NOFOLLOW ) {
-		    return true_lxstat64(version, path, s); 
+		    return true_lxstat64(version, path, s);
 		 }
 		 else {
  		    return true_xstat64(version, path, s);
 		 }
 	}
 
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
@@ -4152,9 +4152,9 @@ int __fxstatat64 (int version, int dirfd, const char *path, struct stat64 *s, in
 	else {
  	   result=__xstat64(version, instw.path, s);
 	}
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 
 }
@@ -4162,11 +4162,11 @@ int __fxstatat64 (int version, int dirfd, const char *path, struct stat64 *s, in
 
 int linkat (int olddirfd, const char *oldpath,
                   int newdirfd, const char *newpath, int flags) {
- 	
+
  	int result;
  	instw_t instwold;
  	instw_t instwnew;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if( (olddirfd == AT_FDCWD || *oldpath == '/') &&
              (newdirfd == AT_FDCWD || *newpath == '/') )
@@ -4175,12 +4175,12 @@ int linkat (int olddirfd, const char *oldpath,
 			debug(2, "linkat(%d, %s, %d, %s, 0%o)\n", olddirfd, oldpath, newdirfd, newpath, flags );
 		 #endif
 
-		 return link(oldpath, newpath); 
+		 return link(oldpath, newpath);
 
-/*** FIXME: If we have AT_SYMLINK_NOFOLLOW we need to dereference the links 
+/*** FIXME: If we have AT_SYMLINK_NOFOLLOW we need to dereference the links
 
 		 if ( flags & AT_SYMLINK_NOFOLLOW ) {
-		    return link(oldpath, newpath); 
+		    return link(oldpath, newpath);
 		 }
 		 else {
 		    return link(oldpath, newpath);
@@ -4188,45 +4188,45 @@ int linkat (int olddirfd, const char *oldpath,
 ***************************************************************** FIXME */
 
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "linkat(%d, %s, %d, %s, 0%o)\n", olddirfd, oldpath, newdirfd, newpath, flags );
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP))
  		return true_link(oldpath, newpath);
-	
+
  	instw_new(&instwold);
  	instw_new(&instwnew);
  	instw_setpathrel(&instwold,olddirfd,oldpath);
  	instw_setpathrel(&instwnew,newdirfd,newpath);
- 	
+
 #if DEBUG
  	instw_print(&instwold);
  	instw_print(&instwnew);
 #endif
- 	
+
  	result=link(instwold.path, instwnew.path);
- 	
+
  	instw_delete(&instwold);
  	instw_delete(&instwnew);
- 
+
 	return result;
 }
 
 
 int mkdirat (int dirfd, const char *path, mode_t mode) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
 		{
@@ -4235,42 +4235,42 @@ int mkdirat (int dirfd, const char *path, mode_t mode) {
 		 #endif
 		 return mkdir(path, mode);
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "mkdirat(%d,%s,0%o)\n", dirfd, path, mode);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP))
  		return true_mkdir(path,mode);
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
- 	
+
  	result=mkdir(instw.path,mode);
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 }
 
 
 READLINKAT_T readlinkat (int dirfd, const char *path,
                       char *buf, size_t bufsiz) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
 		{
@@ -4279,41 +4279,41 @@ READLINKAT_T readlinkat (int dirfd, const char *path,
 		 #endif
 		 return readlink(path, buf, bufsiz);
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "readlinkat(%d,%s, %s, %ld)\n", dirfd, path, buf, (long)bufsiz);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP))
  		return true_readlink(path, buf, bufsiz);
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
- 	
+
  	result=readlink(instw.path, buf, bufsiz);
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 }
 
 
 int __xmknodat (int version, int dirfd,const char *path,mode_t mode,dev_t *dev) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
 		{
@@ -4322,43 +4322,43 @@ int __xmknodat (int version, int dirfd,const char *path,mode_t mode,dev_t *dev) 
 		 #endif
 		 return __xmknod(version, path, mode, dev);
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "__xmknod(%d, %s, 0%o, %p)\n", version, path, mode, dev);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP))
  		return true_xmknod(version, path, mode, dev);
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
- 	
+
  	result=__xmknod(version, instw.path, mode, dev);
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 }
 
 
 int renameat (int olddirfd, const char *oldpath,
                   int newdirfd, const char *newpath) {
- 	
+
  	int result;
  	instw_t instwold;
  	instw_t instwnew;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if( (olddirfd == AT_FDCWD || *oldpath == '/') &&
              (newdirfd == AT_FDCWD || *newpath == '/') )
@@ -4367,49 +4367,49 @@ int renameat (int olddirfd, const char *oldpath,
 			debug(2, "renameat(%d, %s, %d, %s)\n", olddirfd, oldpath, newdirfd, newpath);
 		 #endif
 
-		 return rename(oldpath, newpath); 
+		 return rename(oldpath, newpath);
 
 
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "renameat(%d, %s, %d, %s)\n", olddirfd, oldpath, newdirfd, newpath);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP))
  		return true_rename(oldpath, newpath);
-	
+
  	instw_new(&instwold);
  	instw_new(&instwnew);
  	instw_setpathrel(&instwold,olddirfd,oldpath);
  	instw_setpathrel(&instwnew,newdirfd,newpath);
- 	
+
 #if DEBUG
  	instw_print(&instwold);
  	instw_print(&instwnew);
 #endif
- 	
+
  	result=rename(instwold.path, instwnew.path);
- 	
+
  	instw_delete(&instwold);
  	instw_delete(&instwnew);
- 
+
 	return result;
 }
 
 
 int symlinkat (const char *oldpath, int dirfd, const char *newpath) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *newpath == '/')
 		{
@@ -4418,41 +4418,41 @@ int symlinkat (const char *oldpath, int dirfd, const char *newpath) {
 		 #endif
 		 return symlink(oldpath, newpath);
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "symlinkat(%s, %d, %s)\n", oldpath, dirfd, newpath);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP))
  		return true_symlink(oldpath, newpath);
-	
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,newpath);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
- 	
+
  	result=symlink(oldpath, instw.path);
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 }
 
 
 int unlinkat (int dirfd, const char *path, int flags) {
- 	
+
  	int result;
  	instw_t instw;
- 
+
  	/* If all we are doing is normal open, forgo refcounting, etc. */
          if(dirfd == AT_FDCWD || *path == '/')
 		{
@@ -4464,23 +4464,23 @@ int unlinkat (int dirfd, const char *path, int flags) {
 		 /* rmdir() behaviour, according to unlinkat(2) */
 
 		 if ( flags & AT_REMOVEDIR ) {
-		    return rmdir(path); 
+		    return rmdir(path);
 		 }
 		 else {
 		    return unlink(path);
 		 }
 
 		}
- 
+
  	REFCOUNT;
- 
+
  	if (!libc_handle)
  		initialize();
- 
+
 #if DEBUG
 	debug(2, "unlinkat(%d,%s,0%o)\n", dirfd, path, flags);
 #endif
- 	
+
  	/* We were asked to work in "real" mode */
  	if(!(__instw.gstatus & INSTW_INITIALIZED) ||
  	   !(__instw.gstatus & INSTW_OKWRAP)) {
@@ -4488,33 +4488,33 @@ int unlinkat (int dirfd, const char *path, int flags) {
 		 /* rmdir() behaviour, according to unlinkat(2) */
 
 		 if ( flags & AT_REMOVEDIR ) {
-		    result=true_rmdir(path); 
+		    result=true_rmdir(path);
 		 }
 		 else {
 	 	    result=true_unlink(path);
 		 }
 	}
- 	
-	
+
+
  	instw_new(&instw);
  	instw_setpathrel(&instw,dirfd,path);
- 	
+
 #if DEBUG
  	instw_print(&instw);
 #endif
- 	
+
 	 /* If we have AT_REMOVEDIR then we need        */
 	 /* rmdir() behaviour, according to unlinkat(2) */
 
 	 if ( flags & AT_REMOVEDIR ) {
-	    result=rmdir(instw.path); 
+	    result=rmdir(instw.path);
 	 }
 	 else {
  	    result=unlink(instw.path);
 	 }
- 	
+
  	instw_delete(&instw);
- 
+
 	return result;
 
 }
